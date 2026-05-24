@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>QR Auth - PC</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Escanea para iniciar sesión</h1>
+    <div id="qr-box">
+      <img id="qr-img" src="" alt="QR"/>
+    </div>
+    <p id="status">Generando QR...</p>
+    <p id="timer"></p>
+    <div id="session-info" class="hidden">
+      <h2>✅ Sesión iniciada</h2>
+      <p id="welcome"></p>
+    </div>
+  </div>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
