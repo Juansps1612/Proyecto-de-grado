@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
+import ENV from '../config';
 
-const BACKEND = ' https://stole-regulator-renovator.ngrok-free.dev'; // ← cambia esto
-
-export { BACKEND };
+export const BACKEND = ENV.BACKEND;
 
 export default function LoginScreen({ onLogin }) {
   const [username, setUsername] = useState('');
@@ -12,23 +11,34 @@ export default function LoginScreen({ onLogin }) {
   const [loading, setLoading] = useState(false);
 
   async function login() {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert('Error', 'Complete todos los campos');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await axios.post(`${BACKEND}/auth/login`, { username, password });
+      const res = await axios.post(`${BACKEND}/auth/login`,
+        { username: username.trim(), password },
+        { timeout: 10000 }
+      );
       onLogin(res.data.token);
-    } catch {
-      Alert.alert('Error', 'Credenciales inválidas');
+    } catch (e) {
+      const msg = e.response?.data?.error || 'Error de conexión';
+      Alert.alert('Error', msg);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
     <View style={s.container}>
       <Text style={s.title}>QR Auth</Text>
       <TextInput style={s.input} placeholder="Usuario" placeholderTextColor="#888"
-        value={username} onChangeText={setUsername} autoCapitalize="none"/>
+        value={username} onChangeText={setUsername} autoCapitalize="none"
+        autoCorrect={false} maxLength={30}/>
       <TextInput style={s.input} placeholder="Contraseña" placeholderTextColor="#888"
-        value={password} onChangeText={setPassword} secureTextEntry/>
+        value={password} onChangeText={setPassword} secureTextEntry
+        maxLength={100}/>
       <TouchableOpacity style={s.btn} onPress={login} disabled={loading}>
         <Text style={s.btnText}>{loading ? 'Entrando...' : 'Iniciar sesión'}</Text>
       </TouchableOpacity>

@@ -4,6 +4,14 @@ const QRCode = require('qrcode');
 const QRToken = require('../models/QRToken');
 const jwt = require('jsonwebtoken');
 const verifyJWT = require('../middleware/verifyJWT');
+const { body, validationResult } = require('express-validator');
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty())
+    return res.status(400).json({ errors: errors.array() });
+  next();
+};
 
 // PC solicita un QR
 router.get('/generate', async (req, res) => {
@@ -20,20 +28,25 @@ router.get('/generate', async (req, res) => {
 });
 
 // App móvil valida el QR (requiere JWT del usuario)
-router.post('/validate', verifyJWT, async (req, res) => {
+router.post('/validate', verifyJWT, [
+  body('token').trim().isUUID(),
+  body('sessionId').trim().isUUID(),
+], validate, async (req, res) => {
   const { token, sessionId } = req.body;
 
-  const record = await QRToken.findOne({ token, sessionId });
-  if (!record)
-    return res.status(404).json({ error: 'QR no encontrado' });
-  if (record.used)
-    return res.status(409).json({ error: 'QR ya utilizado' });
-  if (new Date() > record.expiresAt)
-    return res.status(410).json({ error: 'QR expirado' });
+  const now = new Date();
+  const record = await QRToken.findOneAndUpdate(
+    { token, sessionId, used: false, expiresAt: { $gt: now } },
+    { $set: { used: true, userId: req.user.id } },
+    { new: true }
+  );
 
-  record.used = true;
-  record.userId = req.user.id;
-  await record.save();
+  if (!record) {
+    const exists = await QRToken.findOne({ token, sessionId });
+    if (!exists) return res.status(404).json({ error: 'QR no encontrado' });
+    if (exists.used) return res.status(409).json({ error: 'QR ya utilizado' });
+    return res.status(410).json({ error: 'QR expirado' });
+  }
 
   const sessionToken = jwt.sign(
     { id: req.user.id, username: req.user.username, sessionId },
@@ -41,14 +54,15 @@ router.post('/validate', verifyJWT, async (req, res) => {
     { expiresIn: '8h' }
   );
 
-  // Notificar al PC via socket
   req.io.to(sessionId).emit('session_start', { sessionToken, username: req.user.username });
 
   res.json({ ok: true, sessionToken });
 });
 
 // Cerrar sesión desde la app
-router.post('/logout', verifyJWT, (req, res) => {
+router.post('/logout', verifyJWT, [
+  body('sessionId').trim().isUUID(),
+], validate, (req, res) => {
   const { sessionId } = req.body;
   if (!sessionId) return res.status(400).json({ error: 'sessionId requerido' });
   req.io.to(sessionId).emit('session_end');

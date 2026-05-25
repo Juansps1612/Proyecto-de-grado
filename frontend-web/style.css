@@ -1,4 +1,9 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: sans-serif;
   background: #0f0f0f;
@@ -8,8 +13,18 @@ body {
   align-items: center;
   height: 100vh;
 }
-.container { text-align: center; }
-h1 { margin-bottom: 24px; font-size: 22px; color: #ccc; }
+
+.container {
+  text-align: center;
+  padding: 24px;
+}
+
+h1 {
+  margin-bottom: 24px;
+  font-size: 22px;
+  color: #ccc;
+}
+
 #qr-box {
   background: #fff;
   padding: 16px;
@@ -17,10 +32,39 @@ h1 { margin-bottom: 24px; font-size: 22px; color: #ccc; }
   display: inline-block;
   margin-bottom: 16px;
 }
-#qr-img { width: 220px; height: 220px; }
-#status { color: #aaa; margin-bottom: 8px; }
-#timer { color: #e74c3c; font-size: 14px; }
-#session-info { margin-top: 24px; }
-#session-info h2 { font-size: 26px; margin-bottom: 8px; }
-#welcome { color: #2ecc71; font-size: 18px; }
-.hidden { display: none; }
+
+#qr-img {
+  width: 220px;
+  height: 220px;
+  display: block;
+}
+
+#status {
+  color: #aaa;
+  margin-bottom: 8px;
+  font-size: 16px;
+}
+
+#timer {
+  color: #e74c3c;
+  font-size: 14px;
+  min-height: 20px;
+}
+
+#session-info {
+  margin-top: 24px;
+}
+
+#session-info h2 {
+  font-size: 26px;
+  margin-bottom: 8px;
+}
+
+#welcome {
+  color: #2ecc71;
+  font-size: 18px;
+}
+
+.hidden {
+  display: none;
+}
